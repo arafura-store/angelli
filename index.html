@@ -112,11 +112,14 @@ h1{font-size:22px}h2{font-size:19px}h3{font-size:16px}h4{font-size:14px}
 .btn-sm{padding:6px 12px;font-size:12px}
 
 .tbl{width:100%;border-collapse:collapse;font-size:14px}
-.tbl th{background:var(--bg);text-align:left;padding:10px 12px;font-weight:700;font-size:12px;
+.tbl th{background:var(--bg);text-align:center;padding:10px 12px;font-weight:700;font-size:12px;
   text-transform:uppercase;letter-spacing:.05em;color:var(--muted);border-bottom:2px solid var(--border-strong)}
-.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl th.left{text-align:left}
+.tbl th.num{text-align:right}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;text-align:center}
 .tbl tr:hover td{background:var(--bg)}
 .tbl td.num{text-align:right;font-variant-numeric:tabular-nums}
+.tbl td.left{text-align:left}
 .tbl td.ctr{text-align:center}
 
 .badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;
@@ -485,7 +488,7 @@ async function renderCasa() {
   document.getElementById('casa-lista').innerHTML = t.length ? `
     <div style="overflow-x:auto"><table class="tbl">
       <thead><tr>
-        <th>Data</th><th>Centru</th><th>Tip</th><th>Beneficiar / Observații</th>
+        <th>Data</th><th>Centru</th><th>Tip</th><th class="left">Beneficiar / Observații</th>
         <th class="num">Intrare</th><th class="num">Ieșire</th>
         <th>Introdus</th>${canEdit?'<th></th>':''}
       </tr></thead>
@@ -499,11 +502,11 @@ async function renderCasa() {
           <td>${dataRo(r.data)}</td>
           <td>${badgeCentru(r.centru||'general')}</td>
           <td><span class="badge ${totIn>0?'badge-ok':'badge-err'}">${escH(r.tip)}</span></td>
-          <td>${escH(r.beneficiar||'')}${r.observatii?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${escH(r.observatii)}</div>`:''}</td>
+          <td class="left">${escH(r.beneficiar||'')}${r.observatii?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${escH(r.observatii)}</div>`:''}</td>
           <td class="num" style="color:var(--success);font-weight:${totIn>0?'700':'400'}">${totIn>0?fmt(totIn,2):'—'}${totIn>0?`<div style="font-size:10px;color:var(--muted);font-weight:400">${detIn}</div>`:''}</td>
           <td class="num" style="color:var(--danger);font-weight:${totIe>0?'700':'400'}">${totIe>0?fmt(totIe,2):'—'}${totIe>0?`<div style="font-size:10px;color:var(--muted);font-weight:400">${detIe}</div>`:''}</td>
           <td style="font-size:12px;color:var(--muted)">${escH(r.utilizator||'')}</td>
-          ${canEdit?`<td style="white-space:nowrap;text-align:right">
+          ${canEdit?`<td style="white-space:nowrap">
             <button class="btn btn-sm btn-secondary" onclick="deschideCasaForm(null,${r.id})" title="Editează">✏️</button>
             <button class="btn btn-sm btn-danger" onclick="stergeCasa(${r.id})" title="Șterge">✕</button>
           </td>`:''}
