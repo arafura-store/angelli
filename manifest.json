@@ -1,0 +1,11 @@
+{
+  "name": "ANGELLI — Registru",
+  "short_name": "ANGELLI",
+  "description": "Registru evidență restaurant ANGELLI",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAF7F2",
+  "theme_color": "#7B1E2F",
+  "lang": "ro"
+}

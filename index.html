@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#7B1E2F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ANGELLI">
+<title>ANGELLI — Registru</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root{
+  --bordeaux:#7B1E2F; --bordeaux-dark:#5C1424; --bordeaux-soft:#9A3244;
+  --cream:#FAF7F2; --cream-alt:#F1EBE0;
+  --gold:#C9A96E; --gold-dark:#A98A4F;
+  --charcoal:#2B2320; --charcoal-soft:#4A403B; --muted:#8B7F78;
+  --success:#4C7C3F; --warning:#D97A1F; --danger:#B8342D;
+  --border:#E5DDD1; --border-strong:#C9BFB0;
+  --shadow:0 2px 8px rgba(43,35,32,.08);
+  --shadow-lg:0 8px 24px rgba(43,35,32,.15);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--cream);color:var(--charcoal);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;font-size:15px;line-height:1.5}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+a{color:var(--bordeaux);text-decoration:none}
+h1,h2,h3,h4{font-weight:700;color:var(--charcoal);letter-spacing:-.01em}
+h1{font-size:22px}h2{font-size:19px}h3{font-size:16px}h4{font-size:14px}
+
+/* ============================================================
+   LOGIN
+   ============================================================ */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:linear-gradient(135deg,var(--bordeaux) 0%,var(--bordeaux-dark) 100%)}
+#login-card{background:var(--cream);border-radius:16px;padding:32px 28px;max-width:380px;width:100%;
+  box-shadow:var(--shadow-lg);text-align:center}
+#login-card .brand{font-size:32px;font-weight:800;color:var(--bordeaux);letter-spacing:.02em;margin-bottom:4px}
+#login-card .brand-sub{font-size:12px;color:var(--gold-dark);font-weight:600;text-transform:uppercase;letter-spacing:.15em;margin-bottom:24px}
+#login-card .field{margin-bottom:14px;text-align:left}
+#login-card label{font-size:12px;font-weight:700;color:var(--charcoal-soft);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px}
+#login-card select,#login-card input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;
+  background:#fff;color:var(--charcoal);transition:border-color .15s}
+#login-card select:focus,#login-card input:focus{outline:none;border-color:var(--bordeaux)}
+#login-card input{font-size:20px;letter-spacing:.5em;text-align:center;font-weight:700}
+#login-card button.enter{width:100%;padding:14px;background:var(--bordeaux);color:#fff;border-radius:10px;
+  font-weight:700;font-size:15px;letter-spacing:.05em;text-transform:uppercase;transition:background .15s;margin-top:8px}
+#login-card button.enter:hover{background:var(--bordeaux-dark)}
+#login-err{color:var(--danger);font-size:13px;font-weight:600;margin-top:10px;min-height:18px}
+
+/* ============================================================
+   APP SHELL
+   ============================================================ */
+#app{display:none;min-height:100vh}
+#app.on{display:grid;grid-template-rows:auto 1fr;grid-template-columns:220px 1fr}
+@media(max-width:768px){
+  #app.on{grid-template-columns:1fr;grid-template-rows:auto auto 1fr}
+  #sidebar{grid-column:1;grid-row:2;position:sticky;top:0;z-index:10}
+}
+
+#topbar{grid-column:1/-1;background:var(--bordeaux);color:#fff;padding:12px 18px;
+  display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow)}
+#topbar .brand{font-size:20px;font-weight:800;letter-spacing:.03em;display:flex;align-items:center;gap:10px}
+#topbar .brand::before{content:'';display:inline-block;width:6px;height:26px;background:var(--gold);border-radius:2px}
+#topbar .user{display:flex;align-items:center;gap:10px;font-size:13px}
+#topbar .user b{color:var(--gold)}
+#topbar button.logout{padding:6px 12px;background:transparent;border:1px solid rgba(255,255,255,.3);
+  color:#fff;border-radius:6px;font-size:12px;font-weight:600;transition:background .15s}
+#topbar button.logout:hover{background:rgba(255,255,255,.1)}
+
+#sidebar{background:#fff;border-right:1px solid var(--border);padding:14px 10px;overflow-y:auto}
+@media(max-width:768px){
+  #sidebar{border-right:none;border-bottom:1px solid var(--border);padding:8px;
+    display:flex;gap:6px;overflow-x:auto;overflow-y:hidden}
+}
+.nav-item{padding:11px 14px;border-radius:8px;font-size:14px;font-weight:600;color:var(--charcoal-soft);
+  display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .15s;margin-bottom:2px;white-space:nowrap}
+.nav-item:hover{background:var(--cream-alt);color:var(--bordeaux)}
+.nav-item.active{background:var(--bordeaux);color:#fff}
+.nav-item.active:hover{background:var(--bordeaux-dark)}
+.nav-item .ico{font-size:18px}
+@media(max-width:768px){
+  .nav-item{margin-bottom:0;padding:8px 12px;font-size:13px}
+  .nav-item .ico{font-size:16px}
+}
+
+#content{padding:20px;overflow-y:auto;background:var(--cream)}
+@media(max-width:768px){#content{padding:14px}}
+.page{display:none}
+.page.on{display:block}
+
+/* ============================================================
+   COMPONENTE (carduri, tabele, butoane, formulare)
+   ============================================================ */
+.card{background:#fff;border-radius:12px;padding:20px;box-shadow:var(--shadow);margin-bottom:16px;border:1px solid var(--border)}
+.card-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap}
+.card-title h2{color:var(--bordeaux)}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;font-size:14px;font-weight:600;
+  transition:all .15s;border:1.5px solid transparent}
+.btn-primary{background:var(--bordeaux);color:#fff}
+.btn-primary:hover{background:var(--bordeaux-dark)}
+.btn-secondary{background:#fff;color:var(--charcoal);border-color:var(--border-strong)}
+.btn-secondary:hover{background:var(--cream-alt);border-color:var(--bordeaux)}
+.btn-gold{background:var(--gold);color:var(--charcoal)}
+.btn-gold:hover{background:var(--gold-dark);color:#fff}
+.btn-danger{background:#fff;color:var(--danger);border-color:var(--danger)}
+.btn-danger:hover{background:var(--danger);color:#fff}
+.btn-sm{padding:6px 12px;font-size:12px}
+
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{background:var(--cream-alt);text-align:left;padding:10px 12px;font-weight:700;font-size:12px;
+  text-transform:uppercase;letter-spacing:.05em;color:var(--charcoal-soft);border-bottom:2px solid var(--border-strong)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tr:hover td{background:var(--cream)}
+.tbl td.num{text-align:right;font-variant-numeric:tabular-nums}
+.tbl td.ctr{text-align:center}
+
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em}
+.badge-ok{background:#E8F1E4;color:var(--success)}
+.badge-warn{background:#FBEAD7;color:var(--warning)}
+.badge-err{background:#F5DDDB;color:var(--danger)}
+.badge-gold{background:#F3E9D2;color:var(--gold-dark)}
+
+label.fld{font-size:12px;font-weight:700;color:var(--charcoal-soft);text-transform:uppercase;
+  letter-spacing:.05em;display:block;margin-bottom:6px}
+input.inp,select.inp,textarea.inp{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;
+  background:#fff;transition:border-color .15s}
+input.inp:focus,select.inp:focus,textarea.inp:focus{outline:none;border-color:var(--bordeaux)}
+
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.stat{background:#fff;border-radius:10px;padding:14px;border-left:5px solid var(--bordeaux);box-shadow:var(--shadow)}
+.stat .label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.stat .value{font-size:26px;font-weight:800;color:var(--charcoal);margin-top:4px}
+.stat.gold{border-left-color:var(--gold)}
+.stat.success{border-left-color:var(--success)}
+.stat.warning{border-left-color:var(--warning)}
+.stat.danger{border-left-color:var(--danger)}
+
+.spinner{padding:28px;text-align:center;color:var(--muted);font-size:14px}
+
+/* Toast */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);
+  background:var(--charcoal);color:#fff;padding:12px 22px;border-radius:10px;font-size:14px;font-weight:600;
+  box-shadow:var(--shadow-lg);transition:transform .3s;z-index:9999;max-width:90vw}
+#toast.on{transform:translateX(-50%) translateY(0)}
+#toast.success{background:var(--success)}
+#toast.error{background:var(--danger)}
+#toast.warning{background:var(--warning)}
+
+/* Modal */
+.modal{display:none;position:fixed;inset:0;background:rgba(43,35,32,.55);z-index:1000;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+.modal.on{display:flex}
+.modal-card{background:var(--cream);border-radius:12px;padding:22px;max-width:520px;width:100%;box-shadow:var(--shadow-lg);margin:20px auto}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.modal-head h3{color:var(--bordeaux)}
+.modal-close{font-size:26px;line-height:1;color:var(--muted);padding:0 6px}
+.modal-close:hover{color:var(--charcoal)}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     LOGIN SCREEN
+     ============================================================ -->
+<div id="login-screen">
+  <div id="login-card">
+    <div class="brand">ANGELLI</div>
+    <div class="brand-sub">Registru evidență</div>
+
+    <div class="field">
+      <label>Utilizator</label>
+      <select id="login-user"><option value="">Se încarcă…</option></select>
+    </div>
+
+    <div class="field">
+      <label>PIN</label>
+      <input id="login-pin" type="password" inputmode="numeric" autocomplete="off" maxlength="30" placeholder="••••">
+    </div>
+
+    <button class="enter" onclick="login()">Intră</button>
+    <div id="login-err"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     APLICATIE
+     ============================================================ -->
+<div id="app">
+  <div id="topbar">
+    <div class="brand">ANGELLI</div>
+    <div class="user">
+      <span>Bună, <b id="user-name">—</b></span>
+      <button class="logout" onclick="logout()">Ieși</button>
+    </div>
+  </div>
+
+  <nav id="sidebar">
+    <div class="nav-item active" data-page="acasa" onclick="goPage('acasa',this)"><span class="ico">🏠</span><span>Acasă</span></div>
+    <div class="nav-item" data-page="pontaj" onclick="goPage('pontaj',this)"><span class="ico">⏰</span><span>Pontaj</span></div>
+    <div class="nav-item" data-page="angajati" onclick="goPage('angajati',this)"><span class="ico">👥</span><span>Angajați</span></div>
+    <div class="nav-item" data-page="rapoarte" onclick="goPage('rapoarte',this)"><span class="ico">📊</span><span>Rapoarte</span></div>
+  </nav>
+
+  <main id="content">
+    <div class="page on" id="page-acasa">
+      <div class="card">
+        <div class="card-title"><h2>Bine ai venit la ANGELLI</h2></div>
+        <p style="color:var(--charcoal-soft);margin-bottom:12px">
+          Registru pentru evidența restaurantului — pontaj, casă, deconturi.
+        </p>
+        <div class="stat-grid" id="acasa-stats">
+          <div class="stat"><div class="label">Prezenți acum</div><div class="value" id="s-prezenti">—</div></div>
+          <div class="stat gold"><div class="label">Angajați activi</div><div class="value" id="s-angajati">—</div></div>
+          <div class="stat success"><div class="label">Ore azi</div><div class="value" id="s-ore-azi">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page" id="page-pontaj">
+      <div class="card"><div class="spinner">Modulul Pontaj — în construcție</div></div>
+    </div>
+
+    <div class="page" id="page-angajati">
+      <div class="card"><div class="spinner">Modulul Angajați — în construcție</div></div>
+    </div>
+
+    <div class="page" id="page-rapoarte">
+      <div class="card"><div class="spinner">Rapoarte — în construcție</div></div>
+    </div>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ============================================================
+// CONFIG SUPABASE
+// ============================================================
+const SUPA_URL = 'https://kefzrbbeeyihzxmojjha.supabase.co/rest/v1';
+const SUPA_KEY = 'sb_publishable_WVLCh82fTPCjBKs823EP-Q_1v2FfZF4';
+const HEADERS  = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY };
+const HEADERS_W = { ...HEADERS, 'Content-Type': 'application/json', 'Prefer': 'return=representation' };
+
+async function api(path, opts = {}) {
+  const r = await fetch(SUPA_URL + path, { headers: HEADERS, ...opts });
+  if (!r.ok) throw new Error((await r.text()).slice(0, 200));
+  const t = await r.text();
+  return t ? JSON.parse(t) : null;
+}
+
+// ============================================================
+// AUTH — SHA-256 pe client, PIN comparat cu hash-ul din DB
+// ============================================================
+let currentUser = null;
+let _utilizatori = [];
+
+async function sha256(txt) {
+  const buf = new TextEncoder().encode(txt);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function incarcaUtilizatori() {
+  try {
+    _utilizatori = await api('/angelli_utilizatori?select=id,nume,pin_hash,rol,activ&activ=eq.true&order=nume.asc');
+    const sel = document.getElementById('login-user');
+    sel.innerHTML = '<option value="">— alege —</option>' +
+      _utilizatori.map(u => `<option value="${u.id}">${u.nume}</option>`).join('');
+    // Auto-select ultimul utilizator (usurezi login-ul repetat)
+    const last = localStorage.getItem('angelli_ultim_user');
+    if (last && _utilizatori.some(u => u.id == last)) sel.value = last;
+  } catch (e) {
+    document.getElementById('login-err').textContent = 'Nu pot încărca utilizatorii: ' + e.message;
+  }
+}
+
+async function login() {
+  const err = document.getElementById('login-err');
+  err.textContent = '';
+  const uid = parseInt(document.getElementById('login-user').value || '0');
+  const pin = document.getElementById('login-pin').value.trim();
+  if (!uid) { err.textContent = 'Alege utilizatorul.'; return; }
+  if (!pin) { err.textContent = 'Introdu PIN-ul.'; return; }
+
+  const u = _utilizatori.find(x => x.id === uid);
+  const hash = await sha256(pin);
+  if (hash !== u.pin_hash) { err.textContent = 'PIN greșit.'; document.getElementById('login-pin').value = ''; return; }
+
+  currentUser = { id: u.id, nume: u.nume, rol: u.rol };
+  localStorage.setItem('angelli_user', JSON.stringify(currentUser));
+  localStorage.setItem('angelli_ultim_user', u.id);
+  intra();
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('angelli_user');
+  document.getElementById('login-pin').value = '';
+  document.getElementById('login-err').textContent = '';
+  document.getElementById('app').classList.remove('on');
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function intra() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').classList.add('on');
+  document.getElementById('user-name').textContent = currentUser.nume;
+  goPage('acasa', document.querySelector('.nav-item[data-page="acasa"]'));
+}
+
+// ============================================================
+// ROUTER
+// ============================================================
+function goPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.getElementById('page-' + id)?.classList.add('on');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el?.classList.add('active');
+
+  if (id === 'acasa')    renderAcasa();
+  if (id === 'pontaj')   renderPontaj?.();
+  if (id === 'angajati') renderAngajati?.();
+  if (id === 'rapoarte') renderRapoarte?.();
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+async function renderAcasa() {
+  try {
+    const azi = new Date().toISOString().slice(0, 10);
+    const [prezenti, angajati, pontajAzi] = await Promise.all([
+      api('/angelli_pontaj?select=id&ora_iesire=is.null'),
+      api('/angelli_angajati?select=id&activ=eq.true'),
+      api(`/angelli_pontaj?select=ora_intrare,ora_iesire&data=eq.${azi}`)
+    ]);
+    document.getElementById('s-prezenti').textContent = prezenti.length;
+    document.getElementById('s-angajati').textContent = angajati.length;
+    const ore = pontajAzi.reduce((s, p) => {
+      if (!p.ora_iesire) return s;
+      return s + (new Date(p.ora_iesire) - new Date(p.ora_intrare)) / 3600000;
+    }, 0);
+    document.getElementById('s-ore-azi').textContent = ore.toFixed(1);
+  } catch (e) {
+    toast('Nu pot încărca dashboard-ul: ' + e.message, 'error');
+  }
+}
+
+// ============================================================
+// UTILITARE
+// ============================================================
+function toast(msg, tip = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = tip;
+  t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 3000);
+}
+
+function escH(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function fmt(n, d = 2) { return (n == null ? '' : Number(n).toLocaleString('ro-RO', { minimumFractionDigits: d, maximumFractionDigits: d })); }
+function dataRo(d) { return d ? new Date(d).toLocaleDateString('ro-RO') : '—'; }
+function oraHM(d) { return d ? new Date(d).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }) : '—'; }
+
+// ============================================================
+// PORNIRE
+// ============================================================
+window.addEventListener('DOMContentLoaded', async () => {
+  await incarcaUtilizatori();
+  // Auto-login din localStorage daca sesiunea a fost salvata
+  const salvat = localStorage.getItem('angelli_user');
+  if (salvat) {
+    try {
+      currentUser = JSON.parse(salvat);
+      if (_utilizatori.some(u => u.id === currentUser.id)) intra();
+    } catch(e) { localStorage.removeItem('angelli_user'); }
+  }
+  document.getElementById('login-pin').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+});
+</script>
+</body>
+</html>
