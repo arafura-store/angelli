@@ -379,9 +379,19 @@ const CASA_TIPURI_IESIRE = [
   'UTILITATI', 'CHELTUIALA', 'RETRAGERE CASA', 'ALTE IESIRI'
 ];
 
-let _casaFiltru = { perioada: 'luna', deLa: null, panaLa: null, tip: '' };
+let _casaFiltru = { perioada: 'luna', deLa: null, panaLa: null, tip: '', centru: '' };
 let _casaTranzactii = [];
 let _casaEditId = null;
+
+const CENTRU_INFO = {
+  bucatarie: { et: '🍽️ Bucătărie', cul: '#f59e0b', bg: '#FEF3C7' },
+  bar:       { et: '🍷 Bar',       cul: '#7B1E2F', bg: '#F5DDDB' },
+  general:   { et: '🏠 General',   cul: '#6b7280', bg: '#e5e7eb' }
+};
+function badgeCentru(c) {
+  const i = CENTRU_INFO[c] || CENTRU_INFO.general;
+  return `<span class="badge" style="background:${i.bg};color:${i.cul}">${i.et}</span>`;
+}
 
 function getIntervalCasa() {
   const azi = new Date();
@@ -423,6 +433,12 @@ async function renderCasa() {
           <input type="date" class="inp" style="width:auto;max-width:150px" id="casa-de" value="${_casaFiltru.deLa||''}" onchange="_casaFiltru.deLa=this.value;renderCasa()">
           <input type="date" class="inp" style="width:auto;max-width:150px" id="casa-pana" value="${_casaFiltru.panaLa||''}" onchange="_casaFiltru.panaLa=this.value;renderCasa()">
         ` : ''}
+        <select class="inp" style="width:auto;max-width:160px" onchange="_casaFiltru.centru=this.value;renderCasa()">
+          <option value="">Toate centrele</option>
+          <option value="bucatarie" ${_casaFiltru.centru==='bucatarie'?'selected':''}>🍽️ Bucătărie</option>
+          <option value="bar"       ${_casaFiltru.centru==='bar'?'selected':''}>🍷 Bar</option>
+          <option value="general"   ${_casaFiltru.centru==='general'?'selected':''}>🏠 General</option>
+        </select>
         <select class="inp" style="width:auto;max-width:180px" onchange="_casaFiltru.tip=this.value;renderCasa()">
           <option value="">Toate tipurile</option>
           ${[...CASA_TIPURI_INTRARE, ...CASA_TIPURI_IESIRE].map(t =>
@@ -440,7 +456,8 @@ async function renderCasa() {
 
   try {
     let url = `/angelli_casa?select=*&sters_la=is.null&data=gte.${deLa}&data=lte.${panaLa}&order=data.desc,id.desc`;
-    if (_casaFiltru.tip) url += `&tip=eq.${encodeURIComponent(_casaFiltru.tip)}`;
+    if (_casaFiltru.tip)    url += `&tip=eq.${encodeURIComponent(_casaFiltru.tip)}`;
+    if (_casaFiltru.centru) url += `&centru=eq.${encodeURIComponent(_casaFiltru.centru)}`;
     _casaTranzactii = await api(url) || [];
   } catch(e) {
     document.getElementById('casa-lista').innerHTML =
@@ -472,7 +489,7 @@ async function renderCasa() {
   document.getElementById('casa-lista').innerHTML = t.length ? `
     <div style="overflow-x:auto"><table class="tbl">
       <thead><tr>
-        <th>Data</th><th>Tip</th><th>Beneficiar / Observații</th>
+        <th>Data</th><th>Centru</th><th>Tip</th><th>Beneficiar / Observații</th>
         <th class="num">Intrare</th><th class="num">Ieșire</th>
         <th>Introdus</th>${canEdit?'<th></th>':''}
       </tr></thead>
@@ -484,6 +501,7 @@ async function renderCasa() {
         const detIe = [ieC>0?`${fmt(ieC,2)} cash`:'', ieD>0?`${fmt(ieD,2)} card`:''].filter(Boolean).join(' + ');
         return `<tr>
           <td>${dataRo(r.data)}</td>
+          <td>${badgeCentru(r.centru||'general')}</td>
           <td><span class="badge ${totIn>0?'badge-ok':'badge-err'}">${escH(r.tip)}</span></td>
           <td>${escH(r.beneficiar||'')}${r.observatii?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${escH(r.observatii)}</div>`:''}</td>
           <td class="num" style="color:var(--success);font-weight:${totIn>0?'700':'400'}">${totIn>0?fmt(totIn,2):'—'}${totIn>0?`<div style="font-size:10px;color:var(--muted);font-weight:400">${detIn}</div>`:''}</td>
@@ -535,6 +553,7 @@ function deschideCasaForm(mod, editId) {
   const cashVal = e ? (tip==='intrare' ? e.intrare_cash : e.iesire_cash) : '';
   const cardVal = e ? (tip==='intrare' ? e.intrare_card : e.iesire_card) : '';
 
+  const centruImplicit = e?.centru || (_casaFiltru.centru || 'general');
   document.getElementById('casa-modal-body').innerHTML = `
     <div style="display:grid;gap:12px">
       <div style="display:grid;grid-template-columns:1fr 2fr;gap:10px">
@@ -545,6 +564,12 @@ function deschideCasaForm(mod, editId) {
             ${tipuri.map(t => `<option value="${t}" ${t===tipImplicit?'selected':''}>${t}</option>`).join('')}
           </select></div>
       </div>
+      <div><label class="fld">Centru de cost</label>
+        <select class="inp" id="c-centru">
+          <option value="bucatarie" ${centruImplicit==='bucatarie'?'selected':''}>🍽️ Bucătărie</option>
+          <option value="bar"       ${centruImplicit==='bar'?'selected':''}>🍷 Bar</option>
+          <option value="general"   ${centruImplicit==='general'?'selected':''}>🏠 General (restaurant)</option>
+        </select></div>
       <div><label class="fld">Beneficiar (opțional)</label>
         <input type="text" class="inp" id="c-benef" value="${escH(e?.beneficiar||'')}" placeholder="ex: METRO, Ionică bucătar, Enel"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -580,8 +605,9 @@ async function salveazaCasa(tip) {
   if (!data)              { err.textContent = 'Alege data.'; return; }
   if (cash <= 0 && card <= 0) { err.textContent = 'Completează cash sau card (min una).'; return; }
 
+  const centru = document.getElementById('c-centru').value;
   const rand = {
-    data, tip: tipVal, beneficiar: benef, observatii: obs,
+    data, tip: tipVal, centru, beneficiar: benef, observatii: obs,
     intrare_cash: null, intrare_card: null, iesire_cash: null, iesire_card: null,
     utilizator: currentUser?.nume || null
   };
