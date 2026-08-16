@@ -202,6 +202,7 @@ input.inp:focus,select.inp:focus,textarea.inp:focus{outline:none;border-color:va
 
   <nav id="sidebar">
     <div class="nav-item active" data-page="acasa" onclick="goPage('acasa',this)"><span class="ico">🏠</span><span>Acasă</span></div>
+    <div class="nav-item" data-page="casa" onclick="goPage('casa',this)"><span class="ico">💰</span><span>Casă</span></div>
     <div class="nav-item" data-page="pontaj" onclick="goPage('pontaj',this)"><span class="ico">⏰</span><span>Pontaj</span></div>
     <div class="nav-item" data-page="angajati" onclick="goPage('angajati',this)"><span class="ico">👥</span><span>Angajați</span></div>
     <div class="nav-item" data-page="rapoarte" onclick="goPage('rapoarte',this)"><span class="ico">📊</span><span>Rapoarte</span></div>
@@ -222,6 +223,10 @@ input.inp:focus,select.inp:focus,textarea.inp:focus{outline:none;border-color:va
       </div>
     </div>
 
+    <div class="page" id="page-casa">
+      <div id="casa-container"><div class="spinner">Se încarcă…</div></div>
+    </div>
+
     <div class="page" id="page-pontaj">
       <div class="card"><div class="spinner">Modulul Pontaj — în construcție</div></div>
     </div>
@@ -237,6 +242,16 @@ input.inp:focus,select.inp:focus,textarea.inp:focus{outline:none;border-color:va
 </div>
 
 <div id="toast"></div>
+
+<div class="modal" id="casa-modal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="casa-modal-titlu">Tranzacție</h3>
+      <button class="modal-close" onclick="inchideCasaModal()">×</button>
+    </div>
+    <div id="casa-modal-body"></div>
+  </div>
+</div>
 
 <script>
 // ============================================================
@@ -324,6 +339,7 @@ function goPage(id, el) {
   el?.classList.add('active');
 
   if (id === 'acasa')    renderAcasa();
+  if (id === 'casa')     renderCasa();
   if (id === 'pontaj')   renderPontaj?.();
   if (id === 'angajati') renderAngajati?.();
   if (id === 'rapoarte') renderRapoarte?.();
@@ -349,6 +365,267 @@ async function renderAcasa() {
     document.getElementById('s-ore-azi').textContent = ore.toFixed(1);
   } catch (e) {
     toast('Nu pot încărca dashboard-ul: ' + e.message, 'error');
+  }
+}
+
+// ============================================================
+// CASA — registru cash + card
+// ============================================================
+const CASA_TIPURI_INTRARE = [
+  'INCASARE ZI', 'ALIMENTARE CASA', 'ALTE INCASARI'
+];
+const CASA_TIPURI_IESIRE = [
+  'PLATA FURNIZOR', 'MARFA', 'AVANS SALARIU', 'SALARIU',
+  'UTILITATI', 'CHELTUIALA', 'RETRAGERE CASA', 'ALTE IESIRI'
+];
+
+let _casaFiltru = { perioada: 'luna', deLa: null, panaLa: null, tip: '' };
+let _casaTranzactii = [];
+let _casaEditId = null;
+
+function getIntervalCasa() {
+  const azi = new Date();
+  const iso = d => d.toISOString().slice(0,10);
+  if (_casaFiltru.perioada === 'interval') {
+    return { deLa: _casaFiltru.deLa, panaLa: _casaFiltru.panaLa };
+  }
+  if (_casaFiltru.perioada === 'azi') return { deLa: iso(azi), panaLa: iso(azi) };
+  if (_casaFiltru.perioada === 'saptamana') {
+    const dow = (azi.getDay() + 6) % 7;
+    const luni = new Date(azi); luni.setDate(azi.getDate() - dow);
+    return { deLa: iso(luni), panaLa: iso(azi) };
+  }
+  // luna
+  const l1 = new Date(azi.getFullYear(), azi.getMonth(), 1);
+  return { deLa: iso(l1), panaLa: iso(azi) };
+}
+
+async function renderCasa() {
+  const cont = document.getElementById('casa-container');
+  cont.innerHTML = `
+    <div class="card">
+      <div class="card-title">
+        <h2>💰 Casa</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="deschideCasaForm('intrare')">+ Intrare</button>
+          <button class="btn btn-danger" onclick="deschideCasaForm('iesire')">− Ieșire</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+        ${['azi','saptamana','luna','interval'].map(p => `
+          <button class="btn btn-sm ${_casaFiltru.perioada===p?'btn-primary':'btn-secondary'}"
+                  onclick="setCasaPerioada('${p}')">${
+            p==='azi'?'Azi':p==='saptamana'?'Săptămâna':p==='luna'?'Luna':'Interval'
+          }</button>
+        `).join('')}
+        ${_casaFiltru.perioada==='interval' ? `
+          <input type="date" class="inp" style="width:auto;max-width:150px" id="casa-de" value="${_casaFiltru.deLa||''}" onchange="_casaFiltru.deLa=this.value;renderCasa()">
+          <input type="date" class="inp" style="width:auto;max-width:150px" id="casa-pana" value="${_casaFiltru.panaLa||''}" onchange="_casaFiltru.panaLa=this.value;renderCasa()">
+        ` : ''}
+        <select class="inp" style="width:auto;max-width:180px" onchange="_casaFiltru.tip=this.value;renderCasa()">
+          <option value="">Toate tipurile</option>
+          ${[...CASA_TIPURI_INTRARE, ...CASA_TIPURI_IESIRE].map(t =>
+            `<option value="${t}" ${_casaFiltru.tip===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+      </div>
+
+      <div id="casa-stats" class="stat-grid" style="margin-bottom:14px"></div>
+      <div id="casa-lista" class="spinner">Se încarcă…</div>
+    </div>`;
+
+  const { deLa, panaLa } = getIntervalCasa();
+  if (!deLa || !panaLa) { document.getElementById('casa-lista').innerHTML =
+    '<div style="padding:20px;text-align:center;color:var(--muted)">Alege intervalul.</div>'; return; }
+
+  try {
+    let url = `/angelli_casa?select=*&sters_la=is.null&data=gte.${deLa}&data=lte.${panaLa}&order=data.desc,id.desc`;
+    if (_casaFiltru.tip) url += `&tip=eq.${encodeURIComponent(_casaFiltru.tip)}`;
+    _casaTranzactii = await api(url) || [];
+  } catch(e) {
+    document.getElementById('casa-lista').innerHTML =
+      `<div style="padding:20px;color:var(--danger)">Eroare: ${escH(e.message)}</div>`;
+    return;
+  }
+
+  const t = _casaTranzactii;
+  const sum = k => t.reduce((s,r) => s + (parseFloat(r[k])||0), 0);
+  const intCash = sum('intrare_cash'), intCard = sum('intrare_card');
+  const iesCash = sum('iesire_cash'),  iesCard = sum('iesire_card');
+  const soldCash = intCash - iesCash;
+  const soldCard = intCard - iesCard;
+  const soldTot  = soldCash + soldCard;
+
+  const culSold = v => v > 0 ? 'var(--success)' : v < 0 ? 'var(--danger)' : 'var(--dark)';
+  document.getElementById('casa-stats').innerHTML = `
+    <div class="stat"><div class="label">💵 Sold CASH</div>
+      <div class="value" style="color:${culSold(soldCash)}">${fmt(soldCash,2)}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">+${fmt(intCash,2)} / −${fmt(iesCash,2)}</div></div>
+    <div class="stat gold"><div class="label">💳 Sold CARD</div>
+      <div class="value" style="color:${culSold(soldCard)}">${fmt(soldCard,2)}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">+${fmt(intCard,2)} / −${fmt(iesCard,2)}</div></div>
+    <div class="stat success"><div class="label">💰 Total</div>
+      <div class="value" style="color:${culSold(soldTot)}">${fmt(soldTot,2)}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">${t.length} tranzacții</div></div>`;
+
+  const canEdit = currentUser?.rol === 'admin';
+  document.getElementById('casa-lista').innerHTML = t.length ? `
+    <div style="overflow-x:auto"><table class="tbl">
+      <thead><tr>
+        <th>Data</th><th>Tip</th><th>Beneficiar / Observații</th>
+        <th class="num">Intrare</th><th class="num">Ieșire</th>
+        <th>Introdus</th>${canEdit?'<th></th>':''}
+      </tr></thead>
+      <tbody>${t.map(r => {
+        const inC = parseFloat(r.intrare_cash)||0, inD = parseFloat(r.intrare_card)||0;
+        const ieC = parseFloat(r.iesire_cash)||0,  ieD = parseFloat(r.iesire_card)||0;
+        const totIn = inC + inD, totIe = ieC + ieD;
+        const detIn = [inC>0?`${fmt(inC,2)} cash`:'', inD>0?`${fmt(inD,2)} card`:''].filter(Boolean).join(' + ');
+        const detIe = [ieC>0?`${fmt(ieC,2)} cash`:'', ieD>0?`${fmt(ieD,2)} card`:''].filter(Boolean).join(' + ');
+        return `<tr>
+          <td>${dataRo(r.data)}</td>
+          <td><span class="badge ${totIn>0?'badge-ok':'badge-err'}">${escH(r.tip)}</span></td>
+          <td>${escH(r.beneficiar||'')}${r.observatii?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${escH(r.observatii)}</div>`:''}</td>
+          <td class="num" style="color:var(--success);font-weight:${totIn>0?'700':'400'}">${totIn>0?fmt(totIn,2):'—'}${totIn>0?`<div style="font-size:10px;color:var(--muted);font-weight:400">${detIn}</div>`:''}</td>
+          <td class="num" style="color:var(--danger);font-weight:${totIe>0?'700':'400'}">${totIe>0?fmt(totIe,2):'—'}${totIe>0?`<div style="font-size:10px;color:var(--muted);font-weight:400">${detIe}</div>`:''}</td>
+          <td style="font-size:12px;color:var(--muted)">${escH(r.utilizator||'')}</td>
+          ${canEdit?`<td style="white-space:nowrap;text-align:right">
+            <button class="btn btn-sm btn-secondary" onclick="deschideCasaForm(null,${r.id})" title="Editează">✏️</button>
+            <button class="btn btn-sm btn-danger" onclick="stergeCasa(${r.id})" title="Șterge">✕</button>
+          </td>`:''}
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>` : `
+    <div style="text-align:center;padding:30px;color:var(--muted)">
+      <div style="font-size:40px;opacity:.35">💰</div>
+      <div style="font-weight:700;margin-top:8px">Nici o tranzacție în intervalul ales</div>
+    </div>`;
+}
+
+function setCasaPerioada(p) {
+  _casaFiltru.perioada = p;
+  if (p === 'interval' && !_casaFiltru.deLa) {
+    const azi = new Date();
+    const l1 = new Date(azi.getFullYear(), azi.getMonth(), 1);
+    _casaFiltru.deLa = l1.toISOString().slice(0,10);
+    _casaFiltru.panaLa = azi.toISOString().slice(0,10);
+  }
+  renderCasa();
+}
+
+function deschideCasaForm(mod, editId) {
+  _casaEditId = editId || null;
+  let e = null, tip = null;
+  if (editId) {
+    e = _casaTranzactii.find(x => x.id === editId);
+    if (!e) return;
+    tip = (parseFloat(e.intrare_cash)||0) + (parseFloat(e.intrare_card)||0) > 0 ? 'intrare' : 'iesire';
+  } else {
+    tip = mod;
+  }
+  const tipuri = tip === 'intrare' ? CASA_TIPURI_INTRARE : CASA_TIPURI_IESIRE;
+  const tipImplicit = e?.tip || tipuri[0];
+  const azi = new Date().toISOString().slice(0,10);
+
+  document.getElementById('casa-modal-titlu').innerHTML =
+    (e ? '✏️ Modifică tranzacție' : (tip==='intrare' ? '💰 Intrare cash / card' : '💸 Ieșire cash / card'));
+
+  const cashLbl = tip==='intrare' ? 'Intrare CASH (RON)' : 'Ieșire CASH (RON)';
+  const cardLbl = tip==='intrare' ? 'Intrare CARD (RON)' : 'Ieșire CARD (RON)';
+  const cashVal = e ? (tip==='intrare' ? e.intrare_cash : e.iesire_cash) : '';
+  const cardVal = e ? (tip==='intrare' ? e.intrare_card : e.iesire_card) : '';
+
+  document.getElementById('casa-modal-body').innerHTML = `
+    <div style="display:grid;gap:12px">
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:10px">
+        <div><label class="fld">Data</label>
+          <input type="date" class="inp" id="c-data" value="${e?.data || azi}"></div>
+        <div><label class="fld">Tip</label>
+          <select class="inp" id="c-tip">
+            ${tipuri.map(t => `<option value="${t}" ${t===tipImplicit?'selected':''}>${t}</option>`).join('')}
+          </select></div>
+      </div>
+      <div><label class="fld">Beneficiar (opțional)</label>
+        <input type="text" class="inp" id="c-benef" value="${escH(e?.beneficiar||'')}" placeholder="ex: METRO, Ionică bucătar, Enel"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><label class="fld">${cashLbl}</label>
+          <input type="number" step="0.01" class="inp" id="c-cash" value="${cashVal||''}" inputmode="decimal" placeholder="0.00"></div>
+        <div><label class="fld">${cardLbl}</label>
+          <input type="number" step="0.01" class="inp" id="c-card" value="${cardVal||''}" inputmode="decimal" placeholder="0.00"></div>
+      </div>
+      <div><label class="fld">Observații</label>
+        <textarea class="inp" id="c-obs" rows="2" placeholder="ex: factura 1234, marfa piata, avans mai">${escH(e?.observatii||'')}</textarea></div>
+      <div id="c-err" style="color:var(--danger);font-size:13px;font-weight:600;min-height:16px"></div>
+      <button class="btn btn-primary" style="padding:14px;font-size:15px" onclick="salveazaCasa('${tip}')">
+        ${e ? 'Salvează modificările' : 'Salvează tranzacția'}
+      </button>
+    </div>`;
+
+  document.getElementById('casa-modal').classList.add('on');
+  setTimeout(() => document.getElementById('c-cash')?.focus(), 100);
+}
+
+function inchideCasaModal() { document.getElementById('casa-modal').classList.remove('on'); _casaEditId = null; }
+
+async function salveazaCasa(tip) {
+  const err = document.getElementById('c-err');
+  err.textContent = '';
+  const data = document.getElementById('c-data').value;
+  const tipVal = document.getElementById('c-tip').value;
+  const benef = document.getElementById('c-benef').value.trim() || null;
+  const cash = parseFloat(document.getElementById('c-cash').value) || 0;
+  const card = parseFloat(document.getElementById('c-card').value) || 0;
+  const obs = document.getElementById('c-obs').value.trim() || null;
+
+  if (!data)              { err.textContent = 'Alege data.'; return; }
+  if (cash <= 0 && card <= 0) { err.textContent = 'Completează cash sau card (min una).'; return; }
+
+  const rand = {
+    data, tip: tipVal, beneficiar: benef, observatii: obs,
+    intrare_cash: null, intrare_card: null, iesire_cash: null, iesire_card: null,
+    utilizator: currentUser?.nume || null
+  };
+  if (tip === 'intrare') {
+    if (cash > 0) rand.intrare_cash = cash;
+    if (card > 0) rand.intrare_card = card;
+  } else {
+    if (cash > 0) rand.iesire_cash = cash;
+    if (card > 0) rand.iesire_card = card;
+  }
+
+  try {
+    if (_casaEditId) {
+      await fetch(`${SUPA_URL}/angelli_casa?id=eq.${_casaEditId}`, {
+        method: 'PATCH', headers: { ...HEADERS_W, 'Prefer': 'return=minimal' },
+        body: JSON.stringify(rand)
+      }).then(r => { if (!r.ok) throw new Error('cod ' + r.status); });
+      toast('Modificat', 'success');
+    } else {
+      await fetch(`${SUPA_URL}/angelli_casa`, {
+        method: 'POST', headers: { ...HEADERS_W, 'Prefer': 'return=minimal' },
+        body: JSON.stringify([rand])
+      }).then(r => { if (!r.ok) throw new Error('cod ' + r.status); });
+      toast('Tranzacție salvată', 'success');
+    }
+    inchideCasaModal();
+    renderCasa();
+  } catch(ex) {
+    err.textContent = 'Nu am putut salva: ' + ex.message;
+  }
+}
+
+async function stergeCasa(id) {
+  const t = _casaTranzactii.find(x => x.id === id);
+  if (!confirm(`Ștergi tranzacția din ${dataRo(t?.data)} (${t?.tip})?\n\nRămâne în istoric marcată ștearsă, nu se pierde.`)) return;
+  try {
+    await fetch(`${SUPA_URL}/angelli_casa?id=eq.${id}`, {
+      method: 'PATCH', headers: { ...HEADERS_W, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ sters_la: new Date().toISOString() })
+    }).then(r => { if (!r.ok) throw new Error('cod ' + r.status); });
+    toast('Șters', 'success');
+    renderCasa();
+  } catch(ex) {
+    toast('Nu am putut șterge: ' + ex.message, 'error');
   }
 }
 
