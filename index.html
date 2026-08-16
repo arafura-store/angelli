@@ -205,6 +205,7 @@ input.inp:focus,select.inp:focus,textarea.inp:focus{outline:none;border-color:va
 
   <nav id="sidebar">
     <div class="nav-item active" data-page="acasa" onclick="goPage('acasa',this)"><span class="ico">🏠</span><span>Acasă</span></div>
+    <div class="nav-item" data-page="proiect" onclick="goPage('proiect',this)"><span class="ico">📋</span><span>Proiect</span></div>
     <div class="nav-item" data-page="casa" onclick="goPage('casa',this)"><span class="ico">💰</span><span>Casă</span></div>
     <div class="nav-item" data-page="pontaj" onclick="goPage('pontaj',this)"><span class="ico">⏰</span><span>Pontaj</span></div>
     <div class="nav-item" data-page="angajati" onclick="goPage('angajati',this)"><span class="ico">👥</span><span>Angajați</span></div>
@@ -213,16 +214,208 @@ input.inp:focus,select.inp:focus,textarea.inp:focus{outline:none;border-color:va
 
   <main id="content">
     <div class="page on" id="page-acasa">
+      <div class="card" style="border-left:5px solid var(--gold);background:linear-gradient(135deg,#fffcf0 0%,#fff 100%)">
+        <div class="card-title">
+          <h2>📋 Proiect ANGELLI — de citit</h2>
+          <button class="btn btn-primary" onclick="goPage('proiect',document.querySelector('.nav-item[data-page=proiect]'))">Deschide detalii proiect →</button>
+        </div>
+        <p style="line-height:1.6">
+          <b>Bogdan</b> — pentru mâine te rog să citești secțiunea <b>Proiect</b>. Cuprinde: obiective, roadmap complet, cerințe API pentru Selio (ce trebuie să întrebi vânzătorul lor), workflow zilnic complet, roluri și costuri estimate.
+        </p>
+        <p style="margin-top:8px;color:var(--muted);font-size:13px">
+          Continuăm construcția după ce dai OK-ul pe direcția generală.
+        </p>
+      </div>
+
       <div class="card">
         <div class="card-title"><h2>Bine ai venit la ANGELLI</h2></div>
-        <p style="color:var(--charcoal-soft);margin-bottom:12px">
-          Registru pentru evidența restaurantului — pontaj, casă, deconturi.
+        <p style="color:var(--muted);margin-bottom:12px">
+          Registru pentru evidența restaurantului — casă, pontaj, gestiune stocuri.
         </p>
         <div class="stat-grid" id="acasa-stats">
           <div class="stat"><div class="label">Prezenți acum</div><div class="value" id="s-prezenti">—</div></div>
           <div class="stat gold"><div class="label">Angajați activi</div><div class="value" id="s-angajati">—</div></div>
           <div class="stat success"><div class="label">Ore azi</div><div class="value" id="s-ore-azi">—</div></div>
         </div>
+      </div>
+    </div>
+
+    <div class="page" id="page-proiect">
+      <div class="card">
+        <div class="card-title"><h2>📋 Proiect ANGELLI — Sistem de gestiune pe rețetar</h2></div>
+        <div style="background:#fef3c7;padding:12px;border-radius:8px;border-left:4px solid #f59e0b;font-size:13px">
+          <b>Document viu</b> — se actualizează pe măsură ce avansăm și primim feedback de la Bogdan. Ultima actualizare: <b>17 august 2026 seara</b>. Autor: Eugen + AI Claude.
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="color:var(--navy);margin-bottom:10px">🎯 Ce vrem să obținem</h3>
+        <p>Un sistem care răspunde zilnic la 3 întrebări fundamentale:</p>
+        <ul style="margin:10px 0 10px 24px;line-height:1.8">
+          <li><b>Cât stoc am REAL vs TEORETIC?</b> — detectare furt, risipă, erori rețetar</li>
+          <li><b>Cât profit real am pe fiecare produs vândut?</b> — marja adevărată, nu cea presupusă</li>
+          <li><b>Ce trebuie să comand mâine ca să nu rămân fără marfă?</b> — comenzi sugerate automat</li>
+        </ul>
+        <p>Piese existente pe care ne bazăm: <b>rețetarul (40 rețete)</b>, <b>vânzări Selio</b>, <b>facturi intrare</b>, <b>inventar făcut de Alex</b>.</p>
+      </div>
+
+      <div class="card">
+        <h3 style="color:var(--success);margin-bottom:10px">✅ Ce e gata deja</h3>
+        <ul style="margin-left:24px;line-height:1.8">
+          <li>Aplicație live: <a href="https://arafura-store.github.io/angelli/" target="_blank"><code>arafura-store.github.io/angelli</code></a></li>
+          <li>Modul <b>Casă</b> — intrări + ieșiri cash/card pe centre (bucătărie / bar / general)</li>
+          <li>Filtre pe perioadă (azi / săptămâna / luna / interval custom) și pe tip tranzacție</li>
+          <li>Utilizatori: Eugen + Bogdan (mod testare, fără PIN deocamdată)</li>
+          <li>Paleta ARAFURA (navy + gold + sidebar închis)</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3 style="color:var(--navy);margin-bottom:10px">▶ Etapa curentă — Faza 1: Ingrediente + Furnizori</h3>
+        <p><b>Estimare:</b> 2-3 zile de construit + timp de introducere date de la Bogdan</p>
+        <p style="margin-top:10px"><b>Ce construim în aplicație:</b></p>
+        <ul style="margin-left:24px;line-height:1.8">
+          <li>Pagina <b>Ingrediente</b> — Bogdan introduce cele ~100 ingrediente:
+            <ul style="margin-top:4px">
+              <li>Nume, unitate măsură (kg, L, buc)</li>
+              <li>Categorie: bar / bucătărie / mixt</li>
+              <li>Furnizor principal</li>
+              <li>Prag minim de stoc (sub cât intră pe lista de comandă)</li>
+              <li>Zile livrare (cât durează de la comandă la sosire)</li>
+              <li>Flag "inventar săptămânal" (pentru ingrediente scumpe — whisky, ficat, etc.)</li>
+              <li>Preț ultimă achiziție (opțional, se completează automat din facturi)</li>
+            </ul>
+          </li>
+          <li>Pagina <b>Furnizori</b> — Metro, Selgros, distribuitori bere, măcelar, aprozar, etc.</li>
+        </ul>
+        <p style="margin-top:10px"><b>Ce ai nevoie de la Bogdan:</b></p>
+        <ul style="margin-left:24px;line-height:1.8">
+          <li>Lista ingredientelor (Excel sau introdusă direct în app)</li>
+          <li>Lista furnizorilor + contact + zile livrare</li>
+          <li>Aproximativ ce prag minim vrea per ingredient (nu trebuie exact — sistemul învață și ajustează)</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3 style="color:var(--navy);margin-bottom:10px">🗺️ Roadmap complet</h3>
+        <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>#</th><th class="left">Faza</th><th>Zile</th><th class="left">Livrare</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td class="left"><b>Ingrediente + Furnizori</b> (praguri, zile livrare, flag săpt)</td><td>2-3</td><td class="left">Bogdan introduce ingredientele</td></tr>
+            <tr><td>2</td><td class="left"><b>Produse</b> (meniul bar+bucătărie, cod Selio, preț vânzare)</td><td>1-2</td><td class="left">Bogdan introduce cele 40 produse</td></tr>
+            <tr><td>3</td><td class="left"><b>Rețetar</b> (produs → ingrediente + cantități)</td><td>2</td><td class="left">Bogdan introduce rețetele existente</td></tr>
+            <tr><td>4</td><td class="left"><b>Import vânzări Selio</b> (CSV manual, apoi API)</td><td>2-3</td><td class="left">Calcul consum previzionat funcțional</td></tr>
+            <tr><td>5</td><td class="left"><b>Intrări facturi</b> (formular manual pentru început)</td><td>2</td><td class="left">Stoc live actualizat</td></tr>
+            <tr><td>6</td><td class="left"><b>Inventar</b> (formular mobil pentru Alex, săpt + lună)</td><td>2-3</td><td class="left">Comparație teoretic vs real</td></tr>
+            <tr><td>7</td><td class="left"><b>Alerte + Dashboard analize</b> (marje, lipsuri, diferențe)</td><td>3-4</td><td class="left">Vezi zilnic ce se întâmplă</td></tr>
+            <tr><td>7.5</td><td class="left"><b>Liste comandă sugerate</b> (praguri, grupate per furnizor)</td><td>2-3</td><td class="left">Alertă cu ce trebuie comandat</td></tr>
+            <tr><td>7.6</td><td class="left"><b>Predicție consum</b> (medie ponderată + zile săpt + sezonalitate)</td><td>3-4</td><td class="left">Comanda auto-generată zilnic</td></tr>
+            <tr><td>8</td><td class="left"><b>AI email facturi</b> (extractie automată intrări)</td><td>3-5</td><td class="left">Automatizare completă intrări</td></tr>
+          </tbody>
+        </table>
+        </div>
+        <p style="margin-top:10px"><b>Total realist: 22-31 zile construcție</b>, împărțit în livrări utile din prima săptămână. Faza 7.6 (predicție) o construim <b>după</b> ce avem minim 30 zile de vânzări în DB — deci după prima lună de utilizare.</p>
+      </div>
+
+      <div class="card">
+        <h3 style="color:var(--danger);margin-bottom:10px">🔌 Cerințe API Selio — ce trebuie să întrebe Bogdan</h3>
+        <p>Bogdan contactează suportul Selio (sau vânzătorul lor) și cere concret:</p>
+
+        <div style="background:#eff6ff;padding:16px;border-left:5px solid #2563eb;border-radius:8px;margin-top:10px;font-size:14px">
+          <p style="font-weight:700;margin-bottom:12px;color:#1e40af">📞 Text sugerat pentru discuția cu Selio:</p>
+          <p style="font-style:italic;color:#1e3a8a;line-height:1.7">
+            "Bună ziua, folosim Selio la restaurantul ANGELLI. Ne construim o aplicație internă pentru gestiune stocuri și dorim să extragem automat, o dată pe zi, datele de vânzări din Selio. Vă rog să-mi confirmați:"
+          </p>
+          <ol style="margin-top:12px;line-height:1.9;padding-left:24px;color:#1e3a8a">
+            <li><b>Aveți API REST public disponibil pentru clienți?</b> Dacă da:
+              <ul>
+                <li>URL documentație API</li>
+                <li>Cum obținem o cheie API (proces + costuri)</li>
+                <li>Există un sandbox / mediu de test?</li>
+              </ul>
+            </li>
+            <li><b>Ne interesează exclusiv o cheie API cu permisiuni READ-ONLY</b> (doar citire). Nu vom scrie nimic în Selio, doar citim.</li>
+            <li><b>Ce date putem citi zilnic:</b>
+              <ul>
+                <li>Total încasări zi (cash + card, separat)</li>
+                <li>Detaliu vânzări per produs (cod produs Selio + cantitate + preț unitar + preț total) — ideal pentru fiecare zi</li>
+                <li>Categorii produse (bar / bucătărie / desert)</li>
+                <li>Bonus (dacă permite): detaliu vânzări per masă / comandă / oră</li>
+              </ul>
+            </li>
+            <li><b>Frecvență apeluri:</b> 1 apel/zi maxim (după închiderea restaurantului). Nu avem nevoie de real-time.</li>
+            <li><b>Format răspuns preferat:</b> JSON. Acceptăm și XML sau CSV.</li>
+            <li><b>Rate limits / costuri per apel?</b></li>
+          </ol>
+          <p style="margin-top:12px;font-weight:700;color:#991B1B">Dacă răspund că NU au API sau că e complicat:</p>
+          <p style="color:#7f1d1d">
+            Nu blocăm proiectul. Alternativa: <b>export CSV / Excel manual</b> — Bogdan (sau casierița) apasă un buton în Selio seara, salvează un fișier, îl încarcă în aplicația noastră. Adaugă ~1 minut de muncă manuală pe zi, în rest merge la fel.
+          </p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="color:var(--navy);margin-bottom:10px">🔄 Workflow zilnic complet — cum va funcționa</h3>
+        <ol style="line-height:2;margin-left:20px">
+          <li><b>Dimineața (înainte de deschidere):</b> Bogdan primește pe telefon <b>lista de comandă sugerată</b> per furnizor. Doar apasă → email / WhatsApp gata pregătit → trimite. Estimat: 2 min/zi în loc de 30 min de gândit + telefonat.</li>
+          <li><b>În timpul zilei:</b> Vânzările curg în Selio (ospătarii nu simt nicio schimbare). Când vine marfă, factura ajunge pe adresa dedicată <code>facturi@angelli.ro</code>.</li>
+          <li><b>Seara (după închidere):</b> Sistem citește vânzările din Selio (auto sau CSV import), aplică rețetarul → calculează consum teoretic per ingredient → actualizează stocul teoretic live.</li>
+          <li><b>Săptămânal (vineri seara, ~20 min):</b> Alex face inventar la ingredientele scumpe direct pe telefon. Sistem compară cu teoretic. Diferență mare → alertă imediată Eugen + Bogdan.</li>
+          <li><b>Lunar (ultima seară, ~2h):</b> Alex face inventar complet la toate ingredientele. Raport clar în dashboard cu diferență totală valorică.</li>
+          <li><b>Când vine factură pe email:</b> AI extrage automat furnizor + articole + cantități + prețuri → Bogdan aprobă (doar dacă e ingredient nou / furnizor nou) → stoc + preț achiziție se actualizează instant.</li>
+          <li><b>Când apar anomalii:</b> Sistem detectează automat "consumi ×2 mozzarella față de media" → alertă → verifici bucătarul / rețetarul.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h3 style="color:var(--navy);margin-bottom:10px">👥 Cine ce face (roluri)</h3>
+        <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th class="left">Rol</th><th>Persoana</th><th class="left">Responsabilități în sistem</th></tr></thead>
+          <tbody>
+            <tr><td class="left"><b>Coordonator strategic</b></td><td>Eugen</td><td class="left">Vizualizează dashboard, primește alerte, decide strategia, aprobă schimbări majore</td></tr>
+            <tr><td class="left"><b>Manager operațional</b></td><td>Bogdan</td><td class="left">Aprobă facturi noi, aprobă comenzile sugerate, ajustează rețetar dacă chef schimbă, primește alerte zilnice</td></tr>
+            <tr><td class="left"><b>Manager sală + inventar</b></td><td>Alex</td><td class="left">Face inventar (săpt scumpe + lună complet) direct pe telefon</td></tr>
+            <tr><td class="left"><b>Contabilitate</b></td><td>Vivi (mai târziu)</td><td class="left">Verifică facturi, exportă pentru contabilitatea externă (opțional)</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="color:var(--gold-dark);margin-bottom:10px">💰 Costuri operaționale estimate</h3>
+        <ul style="line-height:1.9;margin-left:24px">
+          <li>Supabase (bază date + API): <b>$25/lună</b> — deja plătit (partajat cu DOMADAMI, nu costă în plus)</li>
+          <li>GitHub Pages (hosting aplicație): <b>gratis</b></li>
+          <li>Email pentru facturi (Gmail alias): <b>gratis</b></li>
+          <li>AI procesare facturi (Anthropic Claude): <b>~$1-3/lună</b> (100 facturi × $0.02)</li>
+          <li>SMS/WhatsApp alerte (opțional): <b>$1-5/lună</b></li>
+        </ul>
+        <p style="margin-top:12px;font-weight:700;color:var(--success)">TOTAL cost operațional lunar ANGELLI: aproximativ $5-10/lună</p>
+        <p style="font-size:12px;color:var(--muted);margin-top:4px">Peste ce se plătește deja pentru Supabase la DOMADAMI. Practic aproape zero.</p>
+      </div>
+
+      <div class="card" style="border-left:5px solid var(--danger);background:#fff5f5">
+        <h3 style="color:var(--danger);margin-bottom:10px">❓ Ce am nevoie de la Bogdan (pentru sesiunea următoare)</h3>
+        <ol style="line-height:1.9;margin-left:24px">
+          <li><b>OK-ul pe direcția generală</b> — roadmap, workflow, roluri. Dacă nu e OK, ce ajustăm?</li>
+          <li><b>Contactează Selio</b> cu întrebările de mai sus (secțiunea "Cerințe API"). Nu blochează dacă spun nu — mergem cu import manual.</li>
+          <li><b>Verifică furnizorii ANGELLI</b>: care trimit deja e-Factura XML pe email (majoritatea din 2025 obligatoriu B2B) și care încă trimit doar PDF/hârtie?</li>
+          <li><b>Confirmă cine primește alertele mari</b>: doar Eugen + Bogdan, sau și Alex pentru cele pur operaționale (out-of-stock imediat)?</li>
+          <li><b>Confirmă că Alex are smartphone potrivit</b> (Android/iOS recent) pentru formularul de inventar în teren.</li>
+        </ol>
+      </div>
+
+      <div style="background:#dbeafe;padding:16px;border-radius:10px;border-left:5px solid #2563eb;margin-top:12px">
+        <p style="font-weight:700;color:#1e40af;font-size:15px">📅 Următorii pași după OK-ul lui Bogdan</p>
+        <ul style="margin-top:8px;margin-left:20px;line-height:1.8;color:#1e3a8a">
+          <li>Construim Faza 1 (Ingrediente + Furnizori) — 2-3 zile</li>
+          <li>Bogdan introduce datele — poate în paralel cu construcția Fazei 2</li>
+          <li>Continuăm cu Fazele 2-3 (Produse + Rețetar) — 3-4 zile</li>
+          <li>Prima "vânzare test" — verificare că totul se leagă corect end-to-end</li>
+          <li>De aici pornim fluxul real la ANGELLI</li>
+        </ul>
       </div>
     </div>
 
