@@ -178,13 +178,13 @@ input.inp:focus,select.inp:focus,textarea.inp:focus{outline:none;border-color:va
       <select id="login-user"><option value="">Se încarcă…</option></select>
     </div>
 
-    <div class="field">
-      <label>PIN</label>
-      <input id="login-pin" type="password" inputmode="numeric" autocomplete="off" maxlength="30" placeholder="••••">
-    </div>
+    <input id="login-pin" type="hidden" value="">
 
     <button class="enter" onclick="login()">Intră</button>
     <div id="login-err"></div>
+    <div style="margin-top:14px;padding:8px;background:#fef3c7;color:#92400e;border-radius:6px;font-size:11px;font-weight:600">
+      ⚠️ Mod testare — PIN dezactivat temporar
+    </div>
   </div>
 </div>
 
@@ -299,14 +299,10 @@ async function login() {
   const err = document.getElementById('login-err');
   err.textContent = '';
   const uid = parseInt(document.getElementById('login-user').value || '0');
-  const pin = document.getElementById('login-pin').value.trim();
   if (!uid) { err.textContent = 'Alege utilizatorul.'; return; }
-  if (!pin) { err.textContent = 'Introdu PIN-ul.'; return; }
 
   const u = _utilizatori.find(x => x.id === uid);
-  const hash = await sha256(pin);
-  if (hash !== u.pin_hash) { err.textContent = 'PIN greșit.'; document.getElementById('login-pin').value = ''; return; }
-
+  // MOD TESTARE: PIN dezactivat temporar. Re-activeaza cand ies din testare.
   currentUser = { id: u.id, nume: u.nume, rol: u.rol };
   localStorage.setItem('angelli_user', JSON.stringify(currentUser));
   localStorage.setItem('angelli_ultim_user', u.id);
